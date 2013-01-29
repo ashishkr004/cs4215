@@ -64,9 +64,8 @@ let ls3 = [3;6;7;3;4;8;3;3;3];;
 *)
 let rec findFirst (p:'a->bool) (xs:'a list) : 'a option =
   match xs with
-    | x::rst when (p x) -> Some x
-    | x::rst when (p x) = false -> findFirst p rst
     | [] -> None
+    | x::tl -> if (p x) then Some x else (findFirst p tl)
 ;;
 
 findFirst (fun x -> x mod 2 = 0) ls3;;
