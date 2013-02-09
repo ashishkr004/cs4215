@@ -6,57 +6,89 @@ let rec contract (e:ePL_expr): ePL_expr =
   match e with
     | BoolConst _ | IntConst _ -> e
     | UnaryPrimApp (op,arg) ->
-          begin
-          match op with
-            | "~" ->
-                  begin
-                  match arg with
-                    | IntConst v -> IntConst (-v)
-                    | _ -> failwith ("unable to contract for "^(string_of_ePL e))
-                  end
-            | "\\" ->
-                  failwith ("to be implemented ")
-            | _ -> failwith ("illegal unary op "^op)
-          end
+      begin
+        match op with
+          | "~" ->
+            begin
+              match arg with
+                | IntConst v -> IntConst (-v)
+                | _ -> failwith ("unable to contract for "^(string_of_ePL e))
+            end
+          | "\\" ->
+            begin
+              match arg with
+                | BoolConst v -> BoolConst (not v)
+                | _ -> failwith ("unable to contract for "^(string_of_ePL e))
+            end
+          | _ -> failwith ("illegal unary op "^op)
+      end
     | BinaryPrimApp (op,arg1,arg2) ->
-          begin
-          match op with
-            | "+" ->
-                  begin
-                  match arg1,arg2 with
-                    | IntConst v1,IntConst v2 -> IntConst (v1+v2)
-                    | _,_ -> failwith ("unable to contract "^(string_of_ePL e))
-                  end
-            | "-" ->
-                  begin
-                  match arg1,arg2 with
-                    | IntConst v1,IntConst v2 -> IntConst (v1-v2)
-                    | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
-                  end
-            | "*" ->
-                  begin
-                  match arg1,arg2 with
-                    | IntConst v1,IntConst v2 -> IntConst (v1*v2)
-                    | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
-                  end
-            | "/" ->
-                  begin
-                  match arg1,arg2 with
-                    | IntConst v1,IntConst v2 -> IntConst (v1/v2)
-                    | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
-                  end
-            | "|" ->
-                  failwith ("to be implemented ")
-            | "&" ->
-                  failwith ("to be implemented ")
-            | "<" ->
-                  failwith ("to be implemented ")
-            | ">" ->
-                  failwith ("to be implemented ")
-            | "=" ->
-                  failwith ("to be implemented ")
-            | _ -> failwith ("illegal binary op "^op)
-          end
+      begin
+        match op with
+          | "+" ->
+            begin
+              match arg1,arg2 with
+                | IntConst v1,IntConst v2 -> IntConst (v1+v2)
+                | _,_ -> failwith ("unable to contract "^(string_of_ePL e))
+            end
+          | "-" ->
+            begin
+              match arg1,arg2 with
+                | IntConst v1,IntConst v2 -> IntConst (v1-v2)
+                | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "*" ->
+            begin
+              match arg1,arg2 with
+                | IntConst v1,IntConst v2 -> IntConst (v1*v2)
+                | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "/" ->
+            begin
+              match arg1,arg2 with
+                | IntConst v1,IntConst v2 -> IntConst (v1/v2)
+                | _,_ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "|" ->
+            begin
+              match arg1, arg2 with
+                | BoolConst v1, BoolConst v2 -> BoolConst (v1 || v2)
+                | _, _ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "&" ->
+            begin
+              match
+                arg1, arg2
+              with
+                | BoolConst v1, BoolConst v2 -> BoolConst (v1 && v2)
+                | _, _ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "<" ->
+            begin
+              match
+                arg1, arg2
+              with
+                | IntConst v1, IntConst v2 -> BoolConst (v1 < v2)
+                | _, _ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | ">" ->
+            begin
+              match
+                arg1, arg2
+              with
+                | IntConst v1, IntConst v2 -> BoolConst (v1 > v2)
+                | _, _ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | "=" ->
+            begin
+              match
+                arg1, arg2
+              with
+                | IntConst v1, IntConst v2 -> BoolConst (v1 = v2)
+                | _, _ -> failwith ("unable to contract"^(string_of_ePL e))
+            end
+          | _ -> failwith ("illegal binary op "^op)
+      end
 
 (* check if an expression is reducible or irreducible *)
 let reducible (e:ePL_expr) : bool = 
@@ -70,15 +102,15 @@ let rec oneStep (e:ePL_expr): ePL_expr =
   match e with
     | BoolConst _ | IntConst _ -> e
     | UnaryPrimApp (op,arg) ->
-          if reducible arg then UnaryPrimApp(op,oneStep arg)
-          else contract e
+      if reducible arg then UnaryPrimApp(op,oneStep arg)
+      else contract e
     | BinaryPrimApp (op,arg1,arg2) ->
-          if reducible arg1 
-          then BinaryPrimApp(op,oneStep arg1,arg2)
-          else 
-            if reducible arg2
-            then BinaryPrimApp(op,arg1,oneStep arg2)
-            else contract e
+      if reducible arg1 
+      then BinaryPrimApp(op,oneStep arg1,arg2)
+      else 
+        if reducible arg2
+        then BinaryPrimApp(op,arg1,oneStep arg2)
+        else contract e
 
 (* wrapper method for tracing; please re-compile *)
 (* ho_ - tracing *)
@@ -99,23 +131,23 @@ let rec evaluate (e:ePL_expr): ePL_expr =
 let e1 = IntConst 42
 let e2 = 
   BinaryPrimApp ("+",
-    BinaryPrimApp("*",
-      UnaryPrimApp("~",IntConst 15),
-      IntConst 7),
-    IntConst 2)
+                 BinaryPrimApp("*",
+                               UnaryPrimApp("~",IntConst 15),
+                               IntConst 7),
+                 IntConst 2)
 let e2a = 
   BinaryPrimApp (">",IntConst 7,IntConst 10)
 let e2b = 
   BinaryPrimApp ("=",
-    IntConst 10,
-    BinaryPrimApp("+",IntConst 3,IntConst 7))
+                 IntConst 10,
+                 BinaryPrimApp("+",IntConst 3,IntConst 7))
 
 let e3 = 
   BinaryPrimApp ("|",
-    BinaryPrimApp("&",
-      UnaryPrimApp("\\",BoolConst false),
-      BoolConst true),
-    BoolConst true)
+                 BinaryPrimApp("&",
+                               UnaryPrimApp("\\",BoolConst false),
+                               BoolConst true),
+                 BoolConst true)
 let e4 = 
   BinaryPrimApp ("+",IntConst 15,BoolConst true)
 let e5 = 
@@ -124,39 +156,39 @@ let e5 =
   BinaryPrimApp (">",BoolConst false,BoolConst true)
 let e6 = 
   BinaryPrimApp ("*",
-     BinaryPrimApp ("+",IntConst 1,IntConst 2),
-     IntConst 3)
+                 BinaryPrimApp ("+",IntConst 1,IntConst 2),
+                 IntConst 3)
 let e7 = 
   BinaryPrimApp ("+",
-     IntConst 1,
-     BinaryPrimApp ("*",IntConst 2,IntConst 3))
+                 IntConst 1,
+                 BinaryPrimApp ("*",IntConst 2,IntConst 3))
 
 (* type checking method *)
 let rec type_check (e:ePL_expr) (t:ePL_type) : bool =
   match e,t with
     | IntConst _, IntType -> true
     | BoolConst _, BoolType -> 
-          failwith ("to be implemented ")
+      failwith ("to be implemented ")
     | UnaryPrimApp (op,arg), _ ->
-          begin
-          match op,t with
-            | "~",IntType ->
-                  type_check arg IntType
-            | "\\",BoolType ->
-                  failwith ("to be implemented ")
-            | _,_ -> false
-          end
+      begin
+        match op,t with
+          | "~",IntType ->
+            type_check arg IntType
+          | "\\",BoolType ->
+            failwith ("to be implemented ")
+          | _,_ -> false
+      end
     | BinaryPrimApp (op,arg1,arg2), _ ->
-          begin
-          match op,t with
-            | "+",IntType | "-",IntType | "*",IntType | "/",IntType ->
-                  (type_check arg1 IntType) && (type_check arg2 IntType)
-            | "<",BoolType | ">",BoolType | "=",BoolType ->
-                  failwith ("to be implemented ")
-            | "|",BoolType | "&",BoolType ->
-                  failwith ("to be implemented ")
-            | _,_ -> false
-          end
+      begin
+        match op,t with
+          | "+",IntType | "-",IntType | "*",IntType | "/",IntType ->
+            (type_check arg1 IntType) && (type_check arg2 IntType)
+          | "<",BoolType | ">",BoolType | "=",BoolType ->
+            failwith ("to be implemented ")
+          | "|",BoolType | "&",BoolType ->
+            failwith ("to be implemented ")
+          | _,_ -> false
+      end
     | _, _ -> false
 
 
@@ -166,31 +198,31 @@ let type_infer (e:ePL_expr) : ePL_type option =
   match e with
     | IntConst _ -> Some IntType
     | BoolConst _ -> 
-          failwith ("to be implemented ")
+      failwith ("to be implemented ")
     | UnaryPrimApp (op,arg) ->
-          begin
-          match op with
-            | "~" -> 
-                  if (type_check arg IntType) then Some IntType
-                  else None
-            | "\\" ->
-                  failwith ("to be implemented ")
-            | _ -> None
-          end
+      begin
+        match op with
+          | "~" -> 
+            if (type_check arg IntType) then Some IntType
+            else None
+          | "\\" ->
+            failwith ("to be implemented ")
+          | _ -> None
+      end
     | BinaryPrimApp (op,arg1,arg2) ->
-          begin
-          match op with
-            | "-" | "+" | "*" | "/"  -> 
-                  if (type_check arg1 IntType) && (type_check arg2 IntType) 
-                  then Some IntType
-                  else None
-            | "<" | ">" | "=" ->
-                  failwith ("to be implemented ")
-            | "&" | "|" ->
-                  failwith ("to be implemented ")
-            | _ ->
-                  failwith ("uncognizer operator"^op)
-          end
+      begin
+        match op with
+          | "-" | "+" | "*" | "/"  -> 
+            if (type_check arg1 IntType) && (type_check arg2 IntType) 
+            then Some IntType
+            else None
+          | "<" | ">" | "=" ->
+            failwith ("to be implemented ")
+          | "&" | "|" ->
+            failwith ("to be implemented ")
+          | _ ->
+            failwith ("uncognizer operator"^op)
+      end
 
 
 (* test driver for evaluation *)
@@ -230,7 +262,7 @@ let testType e =
 (* calling ePL parser *)
 let parse_file (filename:string) : (string * ePL_expr) =
   EPL_parser.parse_file filename
- 
+    
 (* set up for command argument
    using Sys and Arg modules *)
 let usage = "usage: " ^ Sys.argv.(0) ^ " <filename>"
