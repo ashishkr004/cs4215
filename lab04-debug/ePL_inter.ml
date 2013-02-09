@@ -241,7 +241,7 @@ let testType e =
   let v = type_infer e in
   match v with 
     | Some t -> print_endline ("  inferred type : "^(string_of_ePL_type t));
-    | None -> print_endline ("  type error ")
+    | None -> print_endline ("  type error!! ")
 
 (* let _ = testCommand e2  *)
 (* let _ = testCommand e2a  *)
@@ -284,10 +284,15 @@ let main =
     let _ = print_endline ("  "^s) in
     let _ = print_endline ("  as "^(string_of_ePL p)) in
     let _ = print_endline "Type checking program .." in
-    let v = testType2 p in
-    if v=None then ()
-    else
-      let _ = print_string "Evaluating ==> " in
-      let r = evaluate p in
-      print_endline (string_of_ePL r)
+    let v = testType p in               (* print out the stupid string. *)
+    match
+      type_infer p
+    with
+      | None -> ()
+      | _ ->
+        begin
+          let _ = print_string "Evaluating ==> " in
+          let r = evaluate p in
+          print_endline (string_of_ePL r)
+        end
 

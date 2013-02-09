@@ -1,0 +1,6 @@
+test/*
+*.out
+*.annot
+*.cmi
+*.cmo
+e[0-9]
