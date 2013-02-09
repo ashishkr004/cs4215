@@ -236,17 +236,22 @@ let parse_file (filename:string) : (string * ePL_expr) =
 let usage = "usage: " ^ Sys.argv.(0) ^ " <filename>"
 let file = ref "" 
 
+
 (* main program *)
 let main =
   (* Read the arguments of command *)
   Arg.parse [] (fun s -> file := s) usage; 
-  if String.length !file == 0 then print_endline usage else 
-  let _ = print_endline "Loading ePL program .." in
-  let (s,p) = parse_file !file in
-  let _ = print_endline ("  "^s) in
-  let _ = print_endline ("  as "^(string_of_ePL p)) in
-  let _ = print_endline "Type checking program .." in
-  let _ = testType p in
-  let _ = print_string "Evaluating ==> " in
-  let r = evaluate p in
-  print_endline (string_of_ePL r)
+  if String.length !file == 0 then print_endline usage 
+  else 
+    let _ = print_endline "Loading ePL program .." in
+    let (s,p) = parse_file !file in
+    let _ = print_endline ("  "^s) in
+    let _ = print_endline ("  as "^(string_of_ePL p)) in
+    let _ = print_endline "Type checking program .." in
+    let v = testType2 p in
+    if v=None then ()
+    else
+      let _ = print_string "Evaluating ==> " in
+      let r = evaluate p in
+      print_endline (string_of_ePL r)
+

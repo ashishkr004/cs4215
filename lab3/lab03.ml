@@ -1,3 +1,5 @@
+open OUnit;;
+
 (* LISTS *)
 
 (* Implement a function that would return the 
@@ -32,6 +34,14 @@ let compress (xs:'a list) : 'a list =
 ;;
 
 compress ls2;;
+
+
+let test_compress =
+  let help = compress [1;1;2;3;4;4;4;5]
+  in assert_equal help [1;2;3;4;5;3]
+;;
+
+test_compress;;
 (* val compress : 'a list -> 'a list = <fun> *)
 (* - : [> `a | `b | `c | `d | `e ] list = [`a; `b; `c; `a; `d; `e] *)
 
