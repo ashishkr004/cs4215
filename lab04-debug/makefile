@@ -15,7 +15,9 @@ compile: ePL_inter.ml
 	./epli $< > $@
 
 test: $(OUTPUT)
+	@echo "########## Testing for equality ##########"
 	for i in $(basename $(FILENAMES)); do \
-		echo $$i;\
+		echo "$$i diff result--";\
 		diff $$i.out test/out.$$i; \
 	done
+	@echo "########## Done testing ##########"
