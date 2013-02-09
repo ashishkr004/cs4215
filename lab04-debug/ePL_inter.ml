@@ -219,9 +219,11 @@ let type_infer (e:ePL_expr) : ePL_type option =
           | "<" | ">" | "=" ->
             if (type_check arg1 IntType) && (type_check arg2 IntType) 
             then Some BoolType
+            else None
           | "&" | "|" ->
             if (type_check arg1 BoolType) && (type_check arg2 BoolType) 
             then Some BoolType
+            else None
           | _ ->
             failwith ("uncognizer operator"^op)
       end
