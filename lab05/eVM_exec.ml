@@ -16,30 +16,25 @@ let testReadBytecode filename =
 (* binary operator over integer values *)
 let binary_operate (c:eVML_inst) (a1:int) (a2:int) : int =
   match c with
-    | PLUS -> a1+a2
-    | MINUS -> a1+a2
-    | TIMES -> a1*a2
-    | DIV -> a1/a2
-    | OR -> 
-          failwith "TO BE IMPLEMENTED"
-    | AND -> 
-          failwith "TO BE IMPLEMENTED"
-    | EQ -> 
-          failwith "TO BE IMPLEMENTED"
-    | LT -> 
-          failwith "TO BE IMPLEMENTED"
-    | GT -> 
-          failwith "TO BE IMPLEMENTED"
-    | _ -> failwith "not possible"
+    | PLUS  -> a1 + a2
+    | MINUS -> a1 + a2
+    | TIMES -> a1 * a2
+    | DIV   -> a1 / a2 (* let ocaml runtime throw a Division_by_zero, since if we're at that point, your program is probably fcked anyway *)
+    | OR    -> a1 lor a2
+    | AND   -> a1 land a2
+    | EQ    -> if a1 = a2 then 1 else 0
+    | LT    -> if a1 < a2 then 1 else 0
+    | GT    -> if a1 > a2 then 1 else 0
+    | _     -> failwith "not possible"
 
 (* unary operator over integer values *)
 let unary_operate (c:eVML_inst) (a1:int) : int =
   match c with
     | NEG -> -a1
-    | NOT -> 
-          failwith "TO BE IMPLEMENTED"
+    | NOT -> 1 - a1
     | _ -> failwith "not possible"
 
+(* TODO::add try..with Empty -> *)
 (* perform operation over a stack *)
 (* see mutable OCaml Stack module *)
 let proc_inst (stk:int Stack.t) (c:eVML_inst) : unit =
@@ -48,11 +43,13 @@ let proc_inst (stk:int Stack.t) (c:eVML_inst) : unit =
     | LDCB i -> Stack.push i stk
     | PLUS | MINUS | TIMES | DIV | AND | OR 
     | GT | LT | EQ
-          -> 
-          failwith "TO BE IMPLEMENTED"
+      ->
+      let a = Stack.pop stk
+      and b = Stack.pop stk in
+      Stack.push (binary_operate c a b) stk
     | NEG | NOT -> 
-          let a1 = Stack.pop stk in
-          Stack.push (unary_operate c a1) stk
+      let a1 = Stack.pop stk in
+      Stack.push (unary_operate c a1) stk
     | DONE -> ()
 
 (* evm virtual machine *)
@@ -125,6 +122,7 @@ let test_extract_filename () =
 
 (* test_extr_filename ();; *)
 
+(* TODO::fix according to rectify-4.txt *)
 (* main program *)
 let main =
   (* Read the arguments of command *)
