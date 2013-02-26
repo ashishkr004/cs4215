@@ -4,3 +4,7 @@ test/*
 *.cmi
 *.cmo
 e[0-9]
+lab06/_build
+*.pdf
+splt
+epli
