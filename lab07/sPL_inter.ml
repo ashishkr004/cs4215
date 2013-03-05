@@ -217,4 +217,26 @@ module S = SPL
 
 (* Custom shit placed in after this mark *)
 
+let e1 = Cond (Var "a", Var "b", Var "c")
+let t1 = S.Arrow(S.IntType,S.IntType)
+let e2 = Func (t1, ["b"], e1)
+let e3 = RecFunc (t1, "f",["b"],
+                  Cond (Var "a", Var "b",Appln(Var "f",t1,[Var "c"])))
+let s1 = [("b",IntConst 1);("c",BinaryPrimApp("+",IntConst 2,IntConst 3))]
+let s2 = [("b",IntConst 1);("c",BinaryPrimApp("+",IntConst 2,Var "b"))]
+let s3 = [("b",IntConst 1);("c",BinaryPrimApp("+",IntConst 2,Var "f"))]
 
+let test_s1 =
+  apply_subs s1 e1;
+  apply_subs s1 e2;
+  apply_subs s1 e3
+
+let test_s2 =
+  apply_subs s2 e1;
+  apply_subs s2 e2;
+  apply_subs s2 e3
+
+let test_s3 =
+  apply_subs s3 e1;
+  apply_subs s3 e2;
+  apply_subs s3 e3
