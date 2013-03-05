@@ -108,7 +108,7 @@ let ren_var (i:id) (ss:(id*id)list) : id =
   with _ -> i
 
 (* find name clashes and replace those that clash with fresh names *)
-(* find_name_clash [x,y] [x] ==> ([_fresh_0,y],[(x,_fresh_0)] *)
+(* find_name_capture [x,y] [x] ==> ([_fresh_0,y],[(x,_fresh_0)] *)
 let find_name_capture (xs:id list) (vv:id list) : ((id list) * (id * id) list) =
   let rec aux xs =
     match xs with
@@ -172,31 +172,47 @@ let filter_clash subs vs =
 (*   must avoid name_clashes *)
 (*   must rename to avoid name_capture *)
 let apply_subs 
-     (ss:(id*sPL_expr)list) 
-     (e:sPL_expr) : sPL_expr =
+    (ss:(id*sPL_expr)list) 
+    (e:sPL_expr) : sPL_expr =
   let rec aux ss e =
     match e with
       | BoolConst _ | IntConst _ -> e
       | Var i -> subs_var i ss
       | UnaryPrimApp (op,arg) 
-         -> UnaryPrimApp (op,aux ss arg)
+        -> UnaryPrimApp (op,aux ss arg)
       | BinaryPrimApp (op,arg1,arg2) 
-         -> BinaryPrimApp (op,aux ss arg1,aux ss arg2)
+        -> BinaryPrimApp (op,aux ss arg1,aux ss arg2)
       | Cond (e1,e2,e3) 
-         -> Cond (aux ss e1,aux ss e2,aux ss e3)
+        -> Cond (aux ss e1,aux ss e2,aux ss e3)
       | Func (t,vs,body) -> 
-            (* must avoid name clash and name capture *)
-            failwith "TO BE IMPLEMENTED"
+        (* must avoid name clash and name capture *)
+        (* get list of substitutions that can be made (filter_clash) *)
+        let possible_subs = filter_clash ss vs in
+        (* handle name capture *)
+        let free_variables = List.concat (List.map (fun (_, expr) -> fv expr) possible_subs) in
+        let (new_args, new_names) = find_name_capture vs free_variables in
+        let new_body = rename_expr new_names body in
+        Func (t, new_args, aux possible_subs new_body)
       | RecFunc (t,f,vs,body) ->
-            (* must avoid name clash and name capture *)
-            failwith "TO BE IMPLEMENTED"
+        (* must avoid name clash and name capture *)
+        let possible_subs = filter_clash ss vs in
+        (* handle name capture *)
+        let free_variables = List.concat (List.map (fun (_, expr) -> fv expr) possible_subs) in
+        let (new_args, new_names) = find_name_capture (f::vs) free_variables in
+        let new_body = rename_expr new_names body in
+        begin
+          match List.filter (fun (x, y) -> x = f) new_names with
+            | [] -> RecFunc (t, f, new_args, aux possible_subs new_body)
+            | [(f, new_f)] -> RecFunc (t, new_f, new_args, aux possible_subs new_body)
+        end        
+          
       | Appln (e1,t,es) -> Appln (aux ss e1,t,List.map (aux ss) es)
   in aux ss e
 
  let apply_subs (ss:(string*sPL_expr)list) (e:sPL_expr) : sPL_expr =
   let pr = string_of_sPL in
   let pr1 = pr_list (pr_pair pr_id pr) in
-  Debug.no_2 "apply_subs" pr1 pr pr apply_subs ss e
+  Debug.ho_2 "apply_subs" pr1 pr pr apply_subs ss e
 
 
 (* pre: len vs <= length args *)
