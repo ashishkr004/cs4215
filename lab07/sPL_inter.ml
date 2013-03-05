@@ -195,16 +195,17 @@ let apply_subs
         Func (t, new_args, aux possible_subs new_body)
       | RecFunc (t,f,vs,body) ->
         (* must avoid name clash and name capture *)
-        let possible_subs = filter_clash ss vs in
+        let possible_subs = filter_clash ss (f::vs) in
         (* handle name capture *)
         let free_variables = List.concat (List.map (fun (_, expr) -> fv expr) possible_subs) in
         let (new_args, new_names) = find_name_capture (f::vs) free_variables in
         let new_body = rename_expr new_names body in
-        begin
-          match List.filter (fun (x, y) -> x = f) new_names with
-            | [] -> RecFunc (t, f, new_args, aux possible_subs new_body)
-            | [(f, new_f)] -> RecFunc (t, new_f, new_args, aux possible_subs new_body)
-        end        
+        RecFunc (t, List.hd new_args, List.tl new_args, aux possible_subs new_body)
+        (* begin *)
+        (*   match List.filter (fun (x, y) -> x = f) new_names with *)
+        (*     | [] -> RecFunc (t, f, new_args, aux possible_subs new_body) *)
+        (*     | [(f, new_f)] -> RecFunc (t, new_f, new_args, aux possible_subs new_body) *)
+        (* end         *)
           
       | Appln (e1,t,es) -> Appln (aux ss e1,t,List.map (aux ss) es)
   in aux ss e
