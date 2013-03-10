@@ -1,10 +1,13 @@
 test/*
 *.out
 *.annot
+*.cma
 *.cmi
 *.cmo
+*.zip
 e[0-9]
-lab06/_build
+*/_build
 *.pdf
 splt
 epli
+*/out*
