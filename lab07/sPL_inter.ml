@@ -185,35 +185,29 @@ let apply_subs
         | Cond (e1,e2,e3) 
             -> Cond (aux ss e1,aux ss e2,aux ss e3)
         | Func (t,vs,body) -> 
-        (* must avoid name clash and name capture *)
-        (* get list of substitutions that can be made (filter_clash) *)
+            (* must avoid name clash and name capture *)
+            (* get list of substitutions that can be made (filter_clash) *)
             let possible_subs = filter_clash ss vs in
-        (* handle name capture *)
+            (* handle name capture *)
             let free_variables = List.concat (List.map (fun (_, expr) -> fv expr) possible_subs) in
             let (new_args, new_names) = find_name_capture vs free_variables in
             let new_body = rename_expr new_names body in
             Func (t, new_args, aux possible_subs new_body)
         | RecFunc (t,f,vs,body) ->
-        (* must avoid name clash and name capture *)
+            (* must avoid name clash and name capture *)
             let possible_subs = filter_clash ss (f::vs) in
-        (* handle name capture *)
+            (* handle name capture *)
             let free_variables = List.concat (List.map (fun (_, expr) -> fv expr) possible_subs) in
             let (new_args, new_names) = find_name_capture (f::vs) free_variables in
             let new_body = rename_expr new_names body in
             RecFunc (t, List.hd new_args, List.tl new_args, aux possible_subs new_body)
-      (* begin *)
-      (*   match List.filter (fun (x, y) -> x = f) new_names with *)
-      (*     | [] -> RecFunc (t, f, new_args, aux possible_subs new_body) *)
-      (*     | [(f, new_f)] -> RecFunc (t, new_f, new_args, aux possible_subs new_body) *)
-      (* end         *)
-                
         | Appln (e1,t,es) -> Appln (aux ss e1,t,List.map (aux ss) es)
     in aux ss e
 
 let apply_subs (ss:(string*sPL_expr)list) (e:sPL_expr) : sPL_expr =
     let pr = string_of_sPL in
     let pr1 = pr_list (pr_pair pr_id pr) in
-    Debug.ho_2 "apply_subs" pr1 pr pr apply_subs ss e
+    Debug.no_2 "apply_subs" pr1 pr pr apply_subs ss e
 
 
 (* pre: len vs <= length args *)

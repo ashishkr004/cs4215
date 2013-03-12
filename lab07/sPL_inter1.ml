@@ -41,7 +41,10 @@ let rec eval (e:sPL_expr): sPL_expr =
                 else eval (Appln (ans,t1,remain))
             | RecFunc(t1,r,vs,body) ->
               (* similar to case based on Func *)
-                failwith "TO BE IMPLEMENTED"
+                let (subs, remain) = pair_fn_args (r::vs) (nf::args) in
+                let ans = (eval (apply_subs subs body)) in
+                if remain == [] then ans
+                else eval (Appln (ans,t1,remain))
             | _ -> 
                 print_endline ("WARNING : not a function value for Appln!");e
         end
