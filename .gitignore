@@ -9,5 +9,12 @@ e[0-9]
 */_build
 *.pdf
 splt
+spli
+spli2
 epli
 */out*
+*.tar*
+svm
+svm2
+splc
+*.svm
