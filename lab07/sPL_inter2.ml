@@ -47,12 +47,69 @@ let contract_unary op arg : sPL_value =
       | _ -> failwith ("illegal unary op "^op)
 
 let contract_binary op arg1 arg2 : sPL_value = 
-  (* assumes fully-applied application *)
-  (* you may use pair_fn_args *)
-  (* evaluate f to a closure to evaluate under its
-     environment *)
-  failwith "TO BE IMPLEMENTED"
-
+    (* assumes fully-applied application *)
+    (* you may use pair_fn_args *)
+    (* evaluate f to a closure to evaluate under its
+       environment *)
+    if arg1==BOT || arg2==BOT then BOT
+    else
+        match op with
+          | "+" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VInt (v1+v2)
+                    | _,_ -> failwith ("unable to contract "^(string_of_binary op arg1 arg2))
+              end
+          | "-" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VInt (v1-v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "*" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VInt (v1*v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "/" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VInt (v1/v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "|" ->
+              begin
+                  match arg1,arg2 with
+                    | VBool v1,VBool v2 -> VBool (v1||v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "&" ->
+              begin
+                  match arg1,arg2 with
+                    | VBool v1,VBool v2 -> VBool (v1&v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "<" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VBool (v1<v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | ">" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VBool (v1>v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | "=" ->
+              begin
+                  match arg1,arg2 with
+                    | VInt v1,VInt v2 -> VBool (v1=v2)
+                    | _,_ -> failwith ("unable to contract"^(string_of_binary op arg1 arg2))
+              end
+          | _ -> failwith ("illegal binary op "^op)
+          
 let rec eval_apply (nf:sPL_value) (args: sPL_value list) : sPL_value=
   match nf with
     | CLS(tenv,vs,body) ->
@@ -65,40 +122,63 @@ let rec eval_apply (nf:sPL_value) (args: sPL_value list) : sPL_value=
 
 (* interpreter with environment and closure *)
 and evaluate (env:env_val) (e:sPL_expr): sPL_value = 
-  match e with
-    | BoolConst v -> VBool v
-    | IntConst v -> VInt v
-    | UnaryPrimApp (op,arg) ->
+    match e with
+      | BoolConst v -> VBool v
+      | IntConst v -> VInt v
+      | UnaryPrimApp (op,arg) ->
           let varg = evaluate env arg in
           contract_unary op varg
-    | BinaryPrimApp (op,arg1,arg2) ->
+      | BinaryPrimApp (op,arg1,arg2) ->
           let varg1 = evaluate env arg1 in
           let varg2 = evaluate env arg2 in
           contract_binary op varg1 varg2
-    | Var v -> 
+      | Var v -> 
           (* fetch corresponding variable from env *)
           (* take note of the ref type *)
-          failwith "TO BE IMPLEMENTED"
-    | Func (t,vs,body) -> 
-          (* build a closure for this function *)
-          failwith "TO BE IMPLEMENTED"
-    | RecFunc (t,i,vs,body) -> 
-          (* build a circular closure for this function *)
-          failwith "TO BE IMPLEMENTED"
-    | Cond(e1,e2,e3) ->
           begin
-            match evaluate env e1 with
-              | VBool b ->
+              match Environ.get_val env v with
+                | Some res -> !res
+                | _ -> failwith ("tried to evaluate invalid var: "^v)
+          end
+      | Func (t,vs,body) -> 
+          (* build a closure for this function *)
+          begin
+              let globals = List.filter (fun v -> List.for_all (fun i -> v <> i) vs) (fv body)
+              in
+              let fn_args = Environ.build_env env globals
+              in let clean_env = List.filter (fun (i, _) -> List.exists (fun (v, _) -> v = i) fn_args) env
+              in CLS (clean_env, vs, body)
+          end
+      | RecFunc (t,i,vs,body) -> 
+          (* build a circular closure for this function *)
+          begin
+              let globals = List.filter (fun v -> List.for_all (fun i -> v <> i) (i::vs)) (fv body)
+              in let fn_args = Environ.build_env env globals
+                 in let clean_env = List.filter (fun (i, _) -> List.exists (fun (v,_) -> v = i) fn_args) env
+                    in let circular = Environ.extend_env clean_env [(i, ref (evaluate env e))]
+              in CLS (circular, vs, body)
+          end
+      | Cond(e1,e2,e3) ->
+          begin
+              match evaluate env e1 with
+                | VBool b ->
                     if b then evaluate env e2
                     else evaluate env e3
-              | _ -> 
+                | _ -> 
                     failwith ("WARNING : not a bool value for Cond!")
           end
-    | Appln (f,t,args) ->
+      | Appln (f,t,args) ->
           (* assumes fully-applied application *)
           (* you may use pair_fn_args *)
           (* evaluate f to a closure to evaluate under its environment *)
-          failwith "TO BE IMPLEMENTED"
+          begin
+              let evaled_args = List.map (evaluate env) args
+              and                       (* eval_apply (CLS) *)
+                      eval_f = evaluate env f
+              in
+              eval_apply eval_f evaled_args
+              (* failwith "to implement" *)
+          end
 
 let evaluate env e = evaluate env (e)
 let usage = "usage: " ^ Sys.argv.(0) ^ " [options] <filename>"
