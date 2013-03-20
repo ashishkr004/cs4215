@@ -74,7 +74,7 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
         | Appln (f,_,args) ->
             begin
                 let s,p = List.split (List.map (fun x -> helper ce x) args) in
-                let sx = List.rev (List.flatten s)
+                let sx = List.flatten (List.rev s)
                 and px = List.flatten p
                 and sf,pf = helper ce f in
                 let ln = List.length sx in
