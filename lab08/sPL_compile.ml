@@ -32,24 +32,24 @@ let enum_cenv xs n =
 
 (* compiling to eVML instrs *)
 let compile (e:sPL_expr) : sVML_prog_sym   =
-  let rec helper (ce:c_env) (e:sPL_expr) : sVML_prog_sym * sVML_prog_sym  =
-    match e with
-      | IntConst i -> [LDCI i],[]
-      | BoolConst b -> [LDCB b],[]
-      | UnaryPrimApp (op,arg) ->
+    let rec helper (ce:c_env) (e:sPL_expr) : sVML_prog_sym * sVML_prog_sym  =
+        match e with
+        | IntConst i -> [LDCI i],[]
+        | BoolConst b -> [LDCB b],[]
+        | UnaryPrimApp (op,arg) ->
             let (s,p) = helper ce arg in
             (s@[trans_cmd op],p)
-      | BinaryPrimApp (op,arg1,arg2) ->
+        | BinaryPrimApp (op,arg1,arg2) ->
             let (s1,p1) = helper ce arg1 in
             let (s2,p2) = helper ce arg2 in
             (s1@(s2@[trans_cmd op]),p1@p2)
-      | Var s ->
+        | Var s ->
             begin
-              match Environ.get_val ce s with
+                match Environ.get_val ce s with
                 | Some i -> [LD (s,i)],[]
                 | None -> [LD (s,(-1))],[]
             end
-      | Func (t,vs,body) -> 
+        | Func (t,vs,body) -> 
             let l_fn = labels # fresh_id in
             let fvs = diff (fv body) vs in
             let all_vs = fvs@vs in
@@ -57,19 +57,27 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
             let arity = List.length vs in
             let (s1,p1) = helper new_ce body in
             let fvs_n = List.map 
-              (fun v -> match (Environ.get_val ce v) with
+                (fun v -> match (Environ.get_val ce v) with
                 | Some i ->(v,i)
                 | _ -> (v,-1)) fvs in
             ([LDF (fvs_n,arity,l_fn)], (((LABEL l_fn)::s1)@[RTN]@p1))
-      | Cond (e1,e2,e3) ->
+        | Cond (e1,e2,e3) ->
+            begin
+                let l_else = labels # fresh_id
+                and l_end = labels # fresh_id
+                and (s1,p1) = helper ce e1
+                and (s2,p2) = helper ce e2
+                and (s3,p3) = helper ce e3
+                (* in (s1@([JOF l_else]@s2@[(GOTO l_end)]@s3), p1@p2@p3) *)
+                in (s1@([JOF l_else]@s2@[(GOTO l_end); (LABEL l_else)]@s3@[(LABEL l_end)]), p1@p2@p3)
+            end
+        | Appln (f,_,args) ->
             failwith "TO BE IMPLEMENTED"
-      | Appln (f,_,args) ->
+        | RecFunc (t,f,vs,body) -> 
             failwith "TO BE IMPLEMENTED"
-      | RecFunc (t,f,vs,body) -> 
-            failwith "TO BE IMPLEMENTED"
-  in
-  let (main_code,proc_code) = (helper [] e)
-  in main_code@(DONE::proc_code)
+    in
+    let (main_code,proc_code) = (helper [] e)
+    in main_code@(DONE::proc_code)
 
 let collect_label xs =
   let rec aux xs n =
