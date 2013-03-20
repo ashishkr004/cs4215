@@ -72,9 +72,29 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
                 in (s1@([JOF l_else]@s2@[(GOTO l_end); (LABEL l_else)]@s3@[(LABEL l_end)]), p1@p2@p3)
             end
         | Appln (f,_,args) ->
-            failwith "TO BE IMPLEMENTED"
+            begin
+                let s,p = List.split (List.map (fun x -> helper ce x) args) in
+                let sx = List.rev (List.flatten s)
+                and px = List.flatten p
+                and sf,pf = helper ce f in
+                let ln = List.length sx in
+                (sx@sf@[CALL ln], px@pf)
+                (* ((List.rev sx)@(sf::(CALL ln)), px@[pf]) *)
+            end
         | RecFunc (t,f,vs,body) -> 
-            failwith "TO BE IMPLEMENTED"
+            begin
+                let l_fn = labels # fresh_id
+                and fvs = diff (fv body) (f::vs) in
+                let all_vs = (f::fvs@vs) in
+                let new_ce = enum_cenv all_vs 0 in
+                let arity = List.length vs in
+                let (s1,p1) = helper new_ce body in
+                let fvs_n = List.map
+                    (fun v -> match (Environ.get_val new_ce v) with (* or should this be ce TODO! *)
+                    | Some i -> (v,i)
+                    | _ -> (v, -1)) (f::fvs) in
+                ([LDFR ((List.tl fvs_n), (List.hd fvs_n), arity, l_fn)], (((LABEL l_fn)::s1)@[RTN]@p1))
+            end
     in
     let (main_code,proc_code) = (helper [] e)
     in main_code@(DONE::proc_code)
