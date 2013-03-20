@@ -68,7 +68,6 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
                 and (s1,p1) = helper ce e1
                 and (s2,p2) = helper ce e2
                 and (s3,p3) = helper ce e3
-                (* in (s1@([JOF l_else]@s2@[(GOTO l_end)]@s3), p1@p2@p3) *)
                 in (s1@([JOF l_else]@s2@[(GOTO l_end); (LABEL l_else)]@s3@[(LABEL l_end)]), p1@p2@p3)
             end
         | Appln (f,_,args) ->
@@ -77,15 +76,14 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
                 let sx = List.flatten (List.rev s)
                 and px = List.flatten p
                 and sf,pf = helper ce f in
-                let ln = List.length sx in
+                let ln = List.length args in
                 (sx@sf@[CALL ln], pf@px)
-                (* ((List.rev sx)@(sf::(CALL ln)), px@[pf]) *)
             end
         | RecFunc (t,f,vs,body) -> 
             begin
                 let l_fn = labels # fresh_id
                 and fvs = diff (fv body) (f::vs) in
-                let all_vs = (f::fvs@vs) in
+                let all_vs = (fvs@[f]@vs) in
                 let new_ce = enum_cenv all_vs 0 in
                 let arity = List.length vs in
                 let (s1,p1) = helper new_ce body in
