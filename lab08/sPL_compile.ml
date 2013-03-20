@@ -78,7 +78,7 @@ let compile (e:sPL_expr) : sVML_prog_sym   =
                 and px = List.flatten p
                 and sf,pf = helper ce f in
                 let ln = List.length sx in
-                (sx@sf@[CALL ln], px@pf)
+                (sx@sf@[CALL ln], pf@px)
                 (* ((List.rev sx)@(sf::(CALL ln)), px@[pf]) *)
             end
         | RecFunc (t,f,vs,body) -> 
