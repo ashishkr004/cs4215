@@ -143,8 +143,14 @@ let trans env c =
 
 let tail_optimize (xs:sVML_prog_sym) : sVML_prog_sym =
   (* to perform tail-call optimization *)
-  failwith ("TAIL OPTIMISE - TO BE IMPLEMENTED")
-
+    let rec aux xs opt =
+        match xs with
+        | [] -> opt
+        | CALL n :: RTN :: ys -> aux ys (opt@((TAILCALL n)::[RTN]))
+        | CALL n :: LABEL m :: RTN :: ys -> aux ys (opt@((TAILCALL n)::(LABEL m)::[RTN]))
+        | x :: ys -> aux ys (opt@[x])
+    in aux xs []
+    
 let link_code (xs:sVML_prog_sym) : sVML_prog_mc =
   (* to convert labels to addresses *)
   let env = collect_label xs in

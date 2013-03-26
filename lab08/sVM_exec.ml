@@ -150,7 +150,23 @@ object (mc)
             (* --------------------------------------------        *)
             (*  (CLS(e1,x1..xs,addr).v1..vs.os,pc,e,(r,npc,ne).rs) *)
             (*  --> (os,addr,e1+[x<-v]*,(r+n-s,npc,ne).rs) *)
-            failwith "TAILCALL : TO BE IMPLEMENTED"
+            begin
+              match Stack.pop stk with
+                | CLS(addr,s,e) ->
+                      let m = Array.length e in
+                      if n<s then
+                        (* partial application *)
+                        failwith "CALL -partial : TO BE IMPLEMENTED"
+                      else
+                        (* full/over application *)
+                        let r = m+s in
+                        let e2= Array.init r (fun i -> if i<m then Array.get e i else BOT) in
+                        let _ = pop_2_venv stk e2 m r in
+                        let _ = Stack.push (ref (n-s),pc+1,venv) rs in
+                        let _ = venv <- e2 in
+                        pc <- addr
+                | _ -> failwith "CALL : not a function"
+            end
       | CALL n ->
             (*            S(pc) = Call n  s<=n *)
             (* -------------------------------------------- *)
