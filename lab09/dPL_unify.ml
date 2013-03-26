@@ -135,18 +135,10 @@ let rec unify_aux (t1:dPL_type) (t2:dPL_type)
           else fail_type "could not unify two universal types"
     | TDef(i,gs),TDef(j,ks) ->
         if i = j then
-            let rec r_solve (la:dPL_type list) (lb:dPL_type list) bindings =
-                match la, lb with
-                | x::xs, y::ys ->
-                    begin
-                        let (s,m) = unify_aux x y in
-                        match bindings with
-                        | a,b -> r_solve xs ys (s@a, m@b)
-                        | _ -> fail_type "failed"
-                    end
-                | [], [] -> bindings
-                | _ -> fail_type "could not unify"
-            in r_solve gs ks ([], [])
+            List.fold_right (function (x,y) ->
+                let (s,m) = unify_aux x y in
+                (function (ss,ms) -> (s@ss, m@ms))
+            ) (List.combine gs ks) ([], [])
         else
             fail_type "could not unify"
     | TVar x, y
@@ -158,8 +150,6 @@ let rec unify_aux (t1:dPL_type) (t2:dPL_type)
                 fail_type "unify_type : occurs check"
             else
                 ([x, y], [])
-    (* | TError, TVar x *)
-    (* | TVar x, TError -> ([x, TError], []) *)
     | TError, x
     | x, TError -> ([], [])
     | _,_ ->  fail_type ((string_of_dPL_type t1) ^ " and " ^ (string_of_dPL_type t2) ^" can not be unified")
