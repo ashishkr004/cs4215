@@ -1,0 +1,100 @@
+
+unify_type@1
+unify_type inp1 :(forall [b]b->int)
+unify_type inp2 :(forall [a]a->int)
+unify_type@1 EXIT out :([],(forall [a]a->int))
+
+unify_type@2
+unify_type inp1 :(forall [a]a)
+unify_type inp2 :(forall [a]a->int)
+unify_type@2 EXIT ExceptionDPL_unify.Type_error("could not unify two universal types")Occurred!
+
+unify_type@3
+unify_type inp1 :int
+unify_type inp2 :bool
+unify_type@3 EXIT ExceptionDPL_unify.Type_error("int and bool can not be unified")Occurred!
+
+unify_type@4
+unify_type inp1 :int
+unify_type inp2 :(forall [b]b->int)
+unify_type@4 EXIT ExceptionDPL_unify.Type_error("int and (forall [b]b->int) can not be unified")Occurred!
+
+unify_type@5
+unify_type inp1 :a->int
+unify_type inp2 :bool->a
+unify_type@5 EXIT out :([(a,bool),(a,int)],bool->bool)
+
+unify_type@6
+unify_type inp1 :a->int
+unify_type inp2 :bool->b
+unify_type@6 EXIT out :([(a,bool),(b,int)],bool->int)
+
+unify_type@7
+unify_type inp1 :a->b->c
+unify_type inp2 :a->(list d)->e
+unify_type@7 EXIT out :([(b,(list d)),(c,e)],a->(list d)->e)
+
+unify_type@8
+unify_type inp1 :TError
+unify_type inp2 :a
+unify_type@8 EXIT out :([(a,TError)],TError)
+
+unify_type@9
+unify_type inp1 :int
+unify_type inp2 :TError
+unify_type@9 EXIT out :([],int)
+
+unify_type@10
+unify_type inp1 :a->b->c
+unify_type inp2 :a->(list d)->d
+unify_type@10 EXIT out :([(b,(list d)),(c,d)],a->(list d)->d)
+
+unify_type@11
+unify_type inp1 :a
+unify_type inp2 :c->int
+unify_type@11 EXIT out :([(a,c->int)],c->int)
+
+unify_type@12
+unify_type inp1 :c->int
+unify_type inp2 :a
+unify_type@12 EXIT out :([(a,c->int)],c->int)
+
+unify_type@13
+unify_type inp1 :a->int
+unify_type inp2 :a
+unify_type@13 EXIT ExceptionDPL_unify.Type_error("unify_type : occurs check")Occurred!
+
+unify_type@14
+unify_type inp1 :(list d)
+unify_type inp2 :(list int)
+unify_type@14 EXIT out :([(d,int)],(list int))
+
+unify_type@15
+unify_type inp1 :(list d)
+unify_type inp2 :(list TError)
+unify_type@15 EXIT out :([(d,TError)],(list TError))
+
+unify_type@16
+unify_type inp1 :(list int)
+unify_type inp2 :(list TError)
+unify_type@16 EXIT out :([],(list int))
+
+unify_type@17
+unify_type inp1 :(list TError)
+unify_type inp2 :(list int)
+unify_type@17 EXIT out :([],(list int))
+
+unify_type@18
+unify_type inp1 :a
+unify_type inp2 :b
+unify_type@18 EXIT out :([(a,b)],b)
+
+unify_type@19
+unify_type inp1 :b
+unify_type inp2 :a
+unify_type@19 EXIT out :([(a,b)],b)
+
+unify_type@20
+unify_type inp1 :b
+unify_type inp2 :b
+unify_type@20 EXIT out :([],b)
