@@ -1,0 +1,16 @@
+* pros-
+  - type safety checking (lvl: awesome)
+    + exacerbated even further for sum-types
+  - really good performance & memory footprint amongst most languages
+    that offer its feature-set
+  - terse, almost as much as python/ruby
+
+* cons-
+  - build tools are...hard to decipher. Nothing as central as
+    cabal/Hackage, for instance..
+    + Attempts like Oasis(http://oasis.forge.ocamlcore.org/) seem to
+      have stagnated
+  - many ways to do most things (*possible* pro)
+  - multi-core support-not very clear. Some projects provide decent
+    support by using multiple processes. Global interpreter-lock.
+    Direction seems to be message-passing?
