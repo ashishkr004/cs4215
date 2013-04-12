@@ -1,0 +1,134 @@
+% titlepage-demo.tex
+\documentclass{beamer}
+\usetheme{Montpellier}
+% \usetheme{Copenhagen}
+\usepackage{helvet}
+%\usepackage[x11names, rgb]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{tipa}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+\usepackage[absolute,overlay]{textpos} 
+\newenvironment{reference}[2]{% 
+  \begin{textblock*}{\textwidth}(#1,#2) 
+      \footnotesize\it\bgroup\color{red!50!black}}{\egroup\end{textblock*}} 
+% items enclosed in square brackets are optional; explanation below
+\title[OCaml, a not-\textit{too}-informed opinion]{
+OCaml, a not-\textit{too}-informed opinion
+}% par none, Señor}
+\author[Arora]{\underline{Div}yanshu Arora}
+\institute[NUS]{
+%  $3\frac{1}{2}$ year, Computer Science\\
+  \texttt{arora@comp.nus.edu.sg}
+}
+% \date[October 2012]{October 16, 2012}
+
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Outline for section \thesection}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+
+\begin{document}
+
+%--- the titlepage frame -------------------------%
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+%--- the presentation begins here ----------------%
+% \setbeamertemplate{footline}{\vspace*{-1cm}\centering Some information\\ some more info\par} 
+\begin{frame}<beamer>
+  \frametitle{Outline of topics covered}
+  \tableofcontents
+\end{frame}
+
+\section{The Pros}
+\label{sec:pro}
+
+\begin{frame}{}
+  \begin{itemize}
+  \item Type inference
+    \pause
+  \item Type safety checks \textit{(level: awesome)}
+    \pause
+    \begin{itemize}
+    \item Even more awesome with sum types
+    \end{itemize}
+    \pause
+  \item Powerful pattern matching
+    \pause
+  \item Really good performance \& memory footprint, especially for
+    its feature set. \textit{(with caveats...)}
+    \pause
+  \item All this results in terse, readable code
+    \pause
+  \item camlp4 :D
+  \end{itemize}
+\end{frame}
+
+\section{The Cons}
+\label{sec:downside}
+
+\subsection{Build Tools}
+
+
+\begin{frame}{Build Tools}
+  \begin{itemize}
+  \item Makefiles, via \texttt{gmake} (what we've been using)
+    \pause
+  \item Abstraction abstraction abstraction! \texttt{autoconf}/\texttt{automake}
+    \pause
+  \item But wait! There's also \texttt{omake}, which is sort of like make with
+    batteries included, especially for ocaml projects.
+    \pause
+  \item There's also \texttt{oasis}, to ``integrate a configure, build and
+    install system in your OCaml project.''
+    \pause
+  \item \texttt{ocamlbuild}, ``automating the compilation of most OCaml
+    projects with minimal user input.''
+    \pause
+  \item Using flaps of a butterfly's wings to flip magnetic disk bits.
+    \pause
+  \end{itemize}
+  Compared to cabal, for instance, a tad fragmented.
+\end{frame}
+
+\subsection{Performance}
+
+
+\begin{frame}{Performance--the caveats}
+  \begin{itemize}
+  \item A number of the List module functions are not tail-recursive.
+    \pause
+  \item GIL galore!
+    \pause
+  \item Multi-core support isn't on the roadmap. Preferred manner is
+    message-passing, between multiple processes (via
+    \texttt{Functory}, \texttt{OCamlnet})
+    \pause
+  \item But there's also \texttt{Netmulticore}, which uses mapped
+    shared memory, and \texttt{OCaml-Java}
+  \end{itemize}
+\end{frame}
+
+\subsection{Lang Features}
+
+
+\begin{frame}{}
+  \begin{block}{TMTOWTDI}
+    This might not be a downside at all!\\
+    Perl, with its whale guts, is doing well enough.
+  \end{block}
+  \begin{block}{Generic Printers, or the lack thereof}
+    à la \texttt{string\_of\_dPL}, \texttt{string\_of\_dPL\_type\_decl}
+  \end{block}
+\end{frame}
+
+\end{document}

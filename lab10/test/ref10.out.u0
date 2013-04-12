@@ -1,0 +1,10 @@
+LOADING dPL program ..
+  fun x y -> y end
+ AS ==> 
+	 type declarations: []
+	 expression: fun  x y -> Var(y) end
+TYPE CHECKING program ..
+ ==> inferred type tv_0->tv_1->tv_1
+ ==> subst []
+ ==> typed expr fun {tv_0->tv_1->tv_1} x y -> Var(y) end
+TRANSFORMING ==> fun {tv_0->tv_1->tv_1} x y -> Var(y) end

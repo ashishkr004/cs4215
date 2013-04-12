@@ -1,0 +1,10 @@
+LOADING dPL program ..
+  type pair 'a 'b = Pair 'a 'b;let f = recfun loop x -> loop (x-1) endin   Pair (f 3) (f 4) end
+ AS ==> 
+	 type declarations: [pair ['a,'b] =[Pair ['a,'b]]]
+	 expression: let  f = recfun loop  x -> Appln[Var(loop); -[Var(x),Int(1)]] end in (Pair Appln[Var(f); Int(3)];Appln[Var(f); Int(4)]) end
+TYPE CHECKING program ..
+ ==> inferred type (pair tv_6 tv_8)
+ ==> subst [(tv_3,tv_8),(tv_7,tv_8),(tv_4,tv_6),(tv_5,tv_6),(tv_1,tv_2),(tv_0,int)]
+ ==> typed expr let {(forall [tv_2]int->tv_2)} f = recfun loop {int->tv_2} x -> Appln[Var(loop):int->tv_2; -[Var(x),Int(1)]] end in {(pair tv_6 tv_8)}(Pair Appln[Var(f):int->tv_6; Int(3)];Appln[Var(f):int->tv_8; Int(4)]) end
+TRANSFORMING ==> Appln[fun {(forall [tv_2]int->tv_2)->(pair tv_6 tv_8)} f -> (PairAppln[Var(f); Int(3)] Appln[Var(f); Int(4)]) end; recfun loop {int->tv_2} x -> Appln[Var(loop); -[Var(x),Int(1)]] end]

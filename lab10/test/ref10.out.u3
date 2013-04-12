@@ -1,0 +1,10 @@
+LOADING dPL program ..
+  let f = fun x -> x endin if (f true) then (f 2) else 3 endend
+ AS ==> 
+	 type declarations: []
+	 expression: let  f = fun  x -> Var(x) end in if Appln[Var(f); Bool(true)] then Appln[Var(f); Int(2)] else Int(3) end end
+TYPE CHECKING program ..
+ ==> inferred type int
+ ==> subst [(tv_1,bool),(tv_2,bool),(tv_3,int),(tv_4,int)]
+ ==> typed expr let {(forall [tv_0]tv_0->tv_0)} f = fun {tv_0->tv_0} x -> Var(x) end in {int}if Appln[Var(f):bool->bool; Bool(true)] then Appln[Var(f):int->int; Int(2)] else Int(3) end end
+TRANSFORMING ==> Appln[fun {(forall [tv_0]tv_0->tv_0)->int} f -> if Appln[Var(f); Bool(true)] then Appln[Var(f); Int(2)] else Int(3) end; fun {tv_0->tv_0} x -> Var(x) end]

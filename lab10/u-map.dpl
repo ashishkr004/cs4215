@@ -1,0 +1,13 @@
+type list 'a = 
+  | Nil
+  | Cons 'a (list 'a);
+
+let map = recfun mp f xs ->
+    match xs with
+      Cons x xs -> Cons (f x) (mp f xs); 
+      Nil -> Nil
+    end
+    end
+in
+ map (fun x -> x>0 end) (Cons 1 (Cons 2 Nil))
+end

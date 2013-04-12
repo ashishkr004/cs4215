@@ -1,0 +1,10 @@
+LOADING dPL program ..
+  fun f x -> f x end
+ AS ==> 
+	 type declarations: []
+	 expression: fun  f x -> Appln[Var(f); Var(x)] end
+TYPE CHECKING program ..
+ ==> inferred type (tv_1->tv_2)->tv_1->tv_2
+ ==> subst [(tv_0,tv_1->tv_2)]
+ ==> typed expr fun {(tv_1->tv_2)->tv_1->tv_2} f x -> Appln[Var(f):tv_1->tv_2; Var(x)] end
+TRANSFORMING ==> fun {(tv_1->tv_2)->tv_1->tv_2} f x -> Appln[Var(f); Var(x)] end

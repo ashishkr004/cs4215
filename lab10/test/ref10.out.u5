@@ -1,0 +1,10 @@
+LOADING dPL program ..
+  let f = recfun loop x -> loop (x-1) endin   if (f 3) then 5 else (f 3) endend
+ AS ==> 
+	 type declarations: []
+	 expression: let  f = recfun loop  x -> Appln[Var(loop); -[Var(x),Int(1)]] end in if Appln[Var(f); Int(3)] then Int(5) else Appln[Var(f); Int(3)] end end
+TYPE CHECKING program ..
+ ==> inferred type int
+ ==> subst [(tv_4,bool),(tv_3,bool),(tv_6,int),(tv_5,int),(tv_1,tv_2),(tv_0,int)]
+ ==> typed expr let {(forall [tv_2]int->tv_2)} f = recfun loop {int->tv_2} x -> Appln[Var(loop):int->tv_2; -[Var(x),Int(1)]] end in {int}if Appln[Var(f):int->bool; Int(3)] then Int(5) else Appln[Var(f):int->int; Int(3)] end end
+TRANSFORMING ==> Appln[fun {(forall [tv_2]int->tv_2)->int} f -> if Appln[Var(f); Int(3)] then Int(5) else Appln[Var(f); Int(3)] end; recfun loop {int->tv_2} x -> Appln[Var(loop); -[Var(x),Int(1)]] end]
