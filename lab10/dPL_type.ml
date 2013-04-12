@@ -312,12 +312,22 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
       | Throw e ->
             let (t,ne) = infer env e in
             (* Hint : use unify_option and TError *)
-            failwith "TO BE IMPLEMENTED"
+            let (s1,_) = unify_option t TError in
+	    ((s1,TError), Throw ne)
       | TryCatch (e1,v,e2) ->
             let env2 = (remove_anon [(v,IntType)])@env in
             let (t1,ne1) = infer env e1 in
             let (t2,ne2) = infer env2 e2 in
-            failwith "TO BE IMPLEMENTED"
+	    let (_, et1) = t1
+	    and (_, et2) = t2 in
+	    if et1 = TError then
+		begin
+		    (([], TError), TryCatch(ne1, v, ne2))
+		end
+	    else
+		begin
+		    (([], et2), TryCatch(ne1, v, ne2))
+		end
       | Cond (e1,e2,e3) ->
             let (t1,ne1) = infer env e1 in
             let (t2,ne2) = infer env e2 in
