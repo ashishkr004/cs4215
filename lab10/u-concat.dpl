@@ -1,0 +1,23 @@
+
+type list 'a = 
+  | Nil
+  | Cons 'a (list 'a);
+
+let concat = recfun helper lst ->
+    match lst with
+      Nil       -> Nil;
+      Cons x xs ->
+          match x with
+           Nil         -> Nil;
+           Cons x1 xs1 -> 
+                match xs1 with
+                   Nil        ->  Cons x1 (helper xs );
+                   Cons y ys  ->  Cons x1 (helper (Cons xs1 xs) )
+                end
+          end
+    end
+    end
+in
+ concat  (Cons (Cons 0 (Cons 1 Nil) ) (Cons  (Cons 0 (Cons 1 Nil) ) (Cons  (Cons 0 (Cons 1 Nil) ) Nil)))
+end
+

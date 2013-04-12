@@ -1,0 +1,15 @@
+type list 'a = 
+  | Nil
+  | Cons 'a (list 'a);
+
+let filter = recfun mp f xs ->
+    match xs with
+      Cons x xs -> 
+        if f x then Cons x (mp f xs)
+        else mp f xs end ; 
+      Nil -> Nil
+    end
+    end
+in
+ filter (fun x -> x>0 end) (Cons 1 (Cons 2 Nil))
+end

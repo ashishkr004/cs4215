@@ -1,0 +1,22 @@
+LOADING dPL program ..
+  type list 'a =   | Nil  | Cons 'a (list 'a);let map = recfun mp f xs ->    match xs with      Cons x xs -> Cons (f x) (mp f xs);       Nil -> Nil    end    endin map (fun x -> x>0 end) (Cons 1 (Cons 2 Nil))end
+ AS ==> 
+	 type declarations: [list ['a] =[Nil [],Cons ['a,(list 'a)]]]
+	 expression: let  map = recfun mp  f xs -> 
+match Var(xs) with 
+Cons x xs -> (Cons Appln[Var(f); Var(x)];Appln[Var(mp); Var(f);Var(xs)]);
+Nil  -> (Nil ) end 
+ end in Appln[Var(map); fun  x -> >[Var(x),Int(0)] end;(Cons Int(1);(Cons Int(2);(Nil )))] end
+TYPE CHECKING program ..
+ ==> inferred type (list bool)
+ ==> subst [(tv_10,int),(tv_11,tv_12),(tv_12,tv_13),(tv_13,int),(tv_9,int),(tv_8,bool),(tv_14,(list bool)),(tv_2,(list tv_7)),(tv_1,(list tv_3)),(tv_4,tv_7),(tv_6,(list tv_7)),(tv_5,tv_7),(tv_0,tv_3->tv_7)]
+ ==> typed expr let {(forall [tv_3,tv_7](tv_3->tv_7)->(list tv_3)->(list tv_7))} map = recfun mp {(tv_3->tv_7)->(list tv_3)->(list tv_7)} f xs -> 
+match Var(xs) with 
+Cons x xs -> (Cons Appln[Var(f):tv_3->tv_7; Var(x)];Appln[Var(mp):(tv_3->tv_7)->(list tv_3)->(list tv_7); Var(f);Var(xs)]);
+Nil  -> (Nil ) end 
+ end in {(list bool)}Appln[Var(map):(int->bool)->(list int)->(list bool); fun {int->bool} x -> >[Var(x),Int(0)] end;(Cons Int(1);(Cons Int(2);(Nil )))] end
+TRANSFORMING ==> Appln[fun {(forall [tv_3,tv_7](tv_3->tv_7)->(list tv_3)->(list tv_7))->(list bool)} map -> Appln[Var(map); fun {int->bool} x -> >[Var(x),Int(0)] end;(ConsInt(1) (ConsInt(2) (Nil)))] end; recfun mp {(tv_3->tv_7)->(list tv_3)->(list tv_7)} f xs -> 
+match Var(xs) with
+Nil ->(Nil);
+Cons x xs->(ConsAppln[Var(f); Var(x)] Appln[Var(mp); Var(f);Var(xs)]) end
+ end]

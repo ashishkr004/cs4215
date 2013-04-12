@@ -1,0 +1,21 @@
+LOADING dPL program ..
+  type list 'a =   | Nil  | Cons 'a (list 'a);let head = fun xs ->       match xs with       Cons x xs -> x      end    endin   head (Cons 1 (Cons 2 Nil))end
+ AS ==> 
+	 type declarations: [list ['a] =[Nil [],Cons ['a,(list 'a)]]]
+	 expression: let  head = fun  xs -> 
+match Var(xs) with 
+Cons x xs -> Var(x) end 
+ end in Appln[Var(head); (Cons Int(1);(Cons Int(2);(Nil )))] end
+TYPE CHECKING program ..
+ ==> inferred type int
+ ==> subst [(tv_3,tv_4),(tv_4,tv_5),(tv_5,int),(tv_2,int),(tv_6,int),(tv_0,(list tv_1))]
+ ==> typed expr let {(forall [tv_1](list tv_1)->tv_1)} head = fun {(list tv_1)->tv_1} xs -> 
+match Var(xs) with 
+Cons x xs -> Var(x);
+Nil  -> throw(Int(1)) end 
+ end in {int}Appln[Var(head):(list int)->int; (Cons Int(1);(Cons Int(2);(Nil )))] end
+TRANSFORMING ==> Appln[fun {(forall [tv_1](list tv_1)->tv_1)->int} head -> Appln[Var(head); (ConsInt(1) (ConsInt(2) (Nil)))] end; fun {(list tv_1)->tv_1} xs -> 
+match Var(xs) with
+Nil ->throw(Int(1));
+Cons x xs->Var(x) end
+ end]

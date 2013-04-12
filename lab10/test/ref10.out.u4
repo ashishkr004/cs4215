@@ -1,0 +1,12 @@
+LOADING dPL program ..
+  try   throw 2catch n with trueend
+ AS ==> 
+	 type declarations: []
+	 expression: try throw(Int(2)) catch n with Bool(true) end
+TYPE CHECKING program ..
+ ==> inferred type bool
+ ==> subst []
+ ==> typed expr try throw(Int(2)) catch n with Bool(true) end
+TRANSFORMING ==> 
+try throw(Int(2)) 
+catch n -> Bool(true) end

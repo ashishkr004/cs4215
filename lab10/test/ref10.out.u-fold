@@ -1,0 +1,22 @@
+LOADING dPL program ..
+  type list 'a =   | Nil  | Cons 'a (list 'a);let fold = recfun mp f a xs ->    match xs with      Cons x xs -> f x (mp f a xs);      Nil -> a    end    endin fold (fun x y -> x+y end) 0 (Cons 1 (Cons 2 Nil))end
+ AS ==> 
+	 type declarations: [list ['a] =[Nil [],Cons ['a,(list 'a)]]]
+	 expression: let  fold = recfun mp  f a xs -> 
+match Var(xs) with 
+Cons x xs -> Appln[Var(f); Var(x);Appln[Var(mp); Var(f);Var(a);Var(xs)]];
+Nil  -> Var(a) end 
+ end in Appln[Var(fold); fun  x y -> +[Var(x),Var(y)] end;Int(0);(Cons Int(1);(Cons Int(2);(Nil )))] end
+TYPE CHECKING program ..
+ ==> inferred type int
+ ==> subst [(tv_9,int),(tv_10,int),(tv_11,tv_12),(tv_12,tv_13),(tv_13,int),(tv_8,int),(tv_7,int),(tv_14,int),(tv_3,tv_6),(tv_2,(list tv_4)),(tv_1,tv_6),(tv_5,tv_6),(tv_0,tv_4->tv_6->tv_6)]
+ ==> typed expr let {(forall [tv_4,tv_6](tv_4->tv_6->tv_6)->tv_6->(list tv_4)->tv_6)} fold = recfun mp {(tv_4->tv_6->tv_6)->tv_6->(list tv_4)->tv_6} f a xs -> 
+match Var(xs) with 
+Cons x xs -> Appln[Var(f):tv_4->tv_6->tv_6; Var(x);Appln[Var(mp):(tv_4->tv_6->tv_6)->tv_6->(list tv_4)->tv_6; Var(f);Var(a);Var(xs)]];
+Nil  -> Var(a) end 
+ end in {int}Appln[Var(fold):(int->int->int)->int->(list int)->int; fun {int->int->int} x y -> +[Var(x),Var(y)] end;Int(0);(Cons Int(1);(Cons Int(2);(Nil )))] end
+TRANSFORMING ==> Appln[fun {(forall [tv_4,tv_6](tv_4->tv_6->tv_6)->tv_6->(list tv_4)->tv_6)->int} fold -> Appln[Var(fold); fun {int->int->int} x y -> +[Var(x),Var(y)] end;Int(0);(ConsInt(1) (ConsInt(2) (Nil)))] end; recfun mp {(tv_4->tv_6->tv_6)->tv_6->(list tv_4)->tv_6} f a xs -> 
+match Var(xs) with
+Nil ->Var(a);
+Cons x xs->Appln[Var(f); Var(x);Appln[Var(mp); Var(f);Var(a);Var(xs)]] end
+ end]

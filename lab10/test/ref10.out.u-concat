@@ -1,0 +1,46 @@
+LOADING dPL program ..
+  type list 'a =   | Nil  | Cons 'a (list 'a);let concat = recfun helper lst ->    match lst with      Nil       -> Nil;      Cons x xs ->          match x with           Nil         -> Nil;           Cons x1 xs1 ->                 match xs1 with                   Nil        ->  Cons x1 (helper xs );                   Cons y ys  ->  Cons x1 (helper (Cons xs1 xs) )                end          end    end    endin concat  (Cons (Cons 0 (Cons 1 Nil) ) (Cons  (Cons 0 (Cons 1 Nil) ) (Cons  (Cons 0 (Cons 1 Nil) ) Nil)))end
+ AS ==> 
+	 type declarations: [list ['a] =[Nil [],Cons ['a,(list 'a)]]]
+	 expression: let  concat = recfun helper  lst -> 
+match Var(lst) with 
+Nil  -> (Nil );
+Cons x xs -> 
+match Var(x) with 
+Nil  -> (Nil );
+Cons x1 xs1 -> 
+match Var(xs1) with 
+Nil  -> (Cons Var(x1);Appln[Var(helper); Var(xs)]);
+Cons y ys -> (Cons Var(x1);Appln[Var(helper); (Cons Var(xs1);Var(xs))]) end 
+ end 
+ end 
+ end in Appln[Var(concat); (Cons (Cons Int(0);(Cons Int(1);(Nil )));(Cons (Cons Int(0);(Cons Int(1);(Nil )));(Cons (Cons Int(0);(Cons Int(1);(Nil )));(Nil ))))] end
+TYPE CHECKING program ..
+ ==> inferred type (list int)
+ ==> subst [(tv_13,tv_17),(tv_17,tv_21),(tv_21,tv_25),(tv_25,(list tv_22)),(tv_22,tv_23),(tv_23,tv_24),(tv_24,int),(tv_18,int),(tv_19,int),(tv_20,int),(tv_14,int),(tv_15,int),(tv_16,int),(tv_12,int),(tv_26,(list int)),(tv_1,(list tv_9)),(tv_0,(list tv_2)),(tv_3,tv_9),(tv_2,(list tv_4)),(tv_5,tv_9),(tv_4,tv_6),(tv_7,tv_9),(tv_8,(list tv_9)),(tv_6,tv_9),(tv_11,(list tv_9)),(tv_10,(list tv_9))]
+ ==> typed expr let {(forall [tv_9](list (list tv_9))->(list tv_9))} concat = recfun helper {(list (list tv_9))->(list tv_9)} lst -> 
+match Var(lst) with 
+Nil  -> (Nil );
+Cons x xs -> 
+match Var(x) with 
+Nil  -> (Nil );
+Cons x1 xs1 -> 
+match Var(xs1) with 
+Nil  -> (Cons Var(x1);Appln[Var(helper):(list (list tv_9))->(list tv_9); Var(xs)]);
+Cons y ys -> (Cons Var(x1);Appln[Var(helper):(list (list tv_9))->(list tv_9); (Cons Var(xs1);Var(xs))]) end 
+ end 
+ end 
+ end in {(list int)}Appln[Var(concat):(list (list int))->(list int); (Cons (Cons Int(0);(Cons Int(1);(Nil )));(Cons (Cons Int(0);(Cons Int(1);(Nil )));(Cons (Cons Int(0);(Cons Int(1);(Nil )));(Nil ))))] end
+TRANSFORMING ==> Appln[fun {(forall [tv_9](list (list tv_9))->(list tv_9))->(list int)} concat -> Appln[Var(concat); (Cons(ConsInt(0) (ConsInt(1) (Nil))) (Cons(ConsInt(0) (ConsInt(1) (Nil))) (Cons(ConsInt(0) (ConsInt(1) (Nil))) (Nil))))] end; recfun helper {(list (list tv_9))->(list tv_9)} lst -> 
+match Var(lst) with
+Nil ->(Nil);
+Cons x xs->
+match Var(x) with
+Nil ->(Nil);
+Cons x1 xs1->
+match Var(xs1) with
+Nil ->(ConsVar(x1) Appln[Var(helper); Var(xs)]);
+Cons y ys->(ConsVar(x1) Appln[Var(helper); (ConsVar(xs1) Var(xs))]) end
+ end
+ end
+ end]
