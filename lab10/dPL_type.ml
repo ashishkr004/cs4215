@@ -312,7 +312,7 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
       | Throw e ->
             let (t,ne) = infer env e in
             (* Hint : use unify_option and TError *)
-            let (s1,_) = unify_option t TError in
+            let (s1,res) = unify_option t TError in
 	    ((s1,TError), Throw ne)
       | TryCatch (e1,v,e2) ->
             let env2 = (remove_anon [(v,IntType)])@env in
@@ -321,22 +321,18 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
 	    let (_, et1) = t1
 	    and (_, et2) = t2 in
 	    if et1 = TError then
-		begin
-		    (([], TError), TryCatch(ne1, v, ne2))
-		end
+		(([], et2), TryCatch(ne1,v,ne2))
 	    else
-		begin
-		    (([], et2), TryCatch(ne1, v, ne2))
-		end
+		(([], et1), TryCatch(ne1,v,ne2))
       | Cond (e1,e2,e3) ->
             let (t1,ne1) = infer env e1 in
             let (t2,ne2) = infer env e2 in
             let (t3,ne3) = infer env e3 in
 	    let (s1,_) = unify_option t1 BoolType in
-	    let (_, tp1) = t2
-	    and (_, tp2) = t3 in
-	    if tp1 = tp2 then
-		((s1,tp1), Cond(ne1,ne2,ne3))
+	    let (s2,tp2) = unify_option t2 (fresh_tv()) in
+	    let (s3,tp3) = unify_option t3 (fresh_tv()) in
+	    if tp2 = tp3 then
+		((s1@s2@s3,tp2), Cond(ne1,ne2,ne3))
 	    else
 		failwith "Could not be unified"
       | Match (em, lst) -> 
@@ -460,7 +456,13 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
       | RecFunc (te,id,args,body) -> 
             (* Hint : similar to Func but remember to give a type to
                function body and associate it with recursive id *)
-            failwith "TO BE IMPLEMENTED"
+	  let env_ls = List.map (fun v -> (v, fresh_tv())) args in
+	  let id_t = fresh_tv() in
+	  let ((s,bt), nbody) = infer ((id, id_t)::env_ls@env) body in
+		  (* let (s1, rslt) = unify_option id_t te in *)
+	  let at = List.map (fun (_,t) -> apply_subs s t) ((id, bt)::env_ls) in
+	  let nft = create_fn_type_bare at bt in
+	  ((s,nft), RecFunc(te, id, args, nbody))
   in 
   let ((subs,t),e) = infer env e in
   match norm_subs subs with
