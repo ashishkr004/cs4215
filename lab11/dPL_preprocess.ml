@@ -25,11 +25,11 @@ let triple_to_type_decl (t: (string * string list * (string * dPL_type list) lis
 
 let add_type_decl_to_env (t: (string * string list * (string * dPL_type list) list) list) =      
     let rec helper lst =
-	match lst with
-	|  x::xs -> 
+    match lst with
+    |  x::xs -> 
             let (id,td) = triple_to_type_decl x in
             ty_dict#add id td; helper xs 
-	| [] -> () in
+    | [] -> () in
     helper t
 
 (* calling dPL parser *)
@@ -53,94 +53,111 @@ let nest_2_simp p =
 
 let norm_match (e:dPL_nexpr) : dPL_expr =
     let rec aux e =
-	match e with
-	| Unit -> Unit
-	| IntConst i -> IntConst i
-	| BoolConst b -> BoolConst b 
-	| Var v -> Var v
-	| UnaryPrimApp (op,arg) 
+    match e with
+    | Unit -> Unit
+    | IntConst i -> IntConst i
+    | BoolConst b -> BoolConst b 
+    | Var v -> Var v
+    | UnaryPrimApp (op,arg) 
             -> UnaryPrimApp (op,aux arg) 
-	| BinaryPrimApp (op,arg1,arg2)
+    | BinaryPrimApp (op,arg1,arg2)
             -> BinaryPrimApp (op,aux arg1,aux arg2) 
-	| Throw e 
+    | Throw e 
             -> Throw (aux e)
-	| TryCatch (e1,v,e2) 
+    | TryCatch (e1,v,e2) 
             -> TryCatch (aux e1,v,aux e2)
-	| Cond (e1,e2,e3) 
+    | Cond (e1,e2,e3) 
             -> Cond (aux e1,aux e2,aux e3)
-	| Match (em, lst) ->
-	    begin
-		let (first_ty, _) = List.hd lst in
-	      (* let rec reorder = fun (ty_lst:dPL_type list) (clause_lst: (DPL.id * DPL.id DPL.dPL_expr_gen) list) (res:(DPL.id * DPL.id DPL.dPL_expr_gen)  : ((DPL.id * DPL.id DPL.dPL_expr_gen) list) -> *)
-	      (* 	  match clause_lst with *)
-	      (* 	  | [] -> if ty_lst = [] then res else failwith "incorrect number of lst members (types still left)" *)
-	      (* 	  | clause::xs_clause_lst -> *)
-	      (* 	      begin *)
-	      (* 		  match ty_lst with *)
-	      (* 		  | ty::xs_ty_lst -> *)
-	      (* 		      let cl = List.find (fun (p,e) -> p = ty) clause_lst in *)
-	      (* 		      reorder xs_ty_lst xs_clause_lst (cl::res) *)
-	      (* 		  | [] -> failwith "incorrect number of lst members" *)
-	      (* 	      end *)
-	      (* in *)
-		
-		match first_ty with
-		| PCons (id, n, _) ->
-		(*     begin *)
-			match ty_dict#find_tag id with
-			| n, ty_list, ty_decl ->
-			    begin
-				let simple = List.map (fun (p,e)->(nest_2_simp p,aux e)) lst in
-				let ordered = List.sort (fun ((_,n1,_), _) ((_,n2,_), _) ->
-				    if n1 < n2 then
-					-1
-				    else if n1 > n2 then
-					1
-				    else 0
-				) simple in
-				let rec insert_missing = fun ordered_lst def_lst i ->
-				    match ordered_lst, def_lst with
-				    | ((idx,_,_), _)::oxs, (idy, _)::dxs when idx = idy -> (List.hd ordered_lst)::(insert_missing oxs dxs (i+1))
-				    | [], (idy, _)::dxs
-				    | _, (idy, _)::dxs ->
-					let rec create_param_lst = fun x ->
-					    begin
-						if x = 0
-						then
-						    []
-						else
-						    "_"::(create_param_lst (x-1))
-					    end
-					in
-					let param_lst = create_param_lst (List.length ty_decl.ty_def_data) in
-					((idy, (i+1), []), Throw(IntConst(i+1)))::(insert_missing ordered_lst dxs (i+1))
-					(* (List.hd ordered_lst)::(insert_missing ordered_lst dxs (i+1)) *)
-				    | [], [] -> []
-				in
-				(* let _ = List.map (fun x -> print_endline (string_of_dPL_type x)) ty_list *)
-				(* and _ = print_endline
-		(string_of_dPL_type_decl ty_decl) in *)
-				let ins = insert_missing ordered ty_decl.ty_def_data 0 in
-				Match(aux em, ins)
-			    end
-		(*     end *)
-		(* | PVar _ -> failwith "..." *)
-	    (* | _ -> raise "Failed to find type" *)
-	    end
-		
-	| Constr (i,tag,args) ->
-            let n =  find_position i in
-            Constr (i,n,List.map aux args)
-	| HasType (e,t) 
-            -> HasType (aux e,t)
-	| Appln (e1,t,args) 
-            -> Appln(aux e1,t,List.map aux args)
-	| Func (te,args,body) 
-            -> Func (te,args,aux body)
-	| Let (lst,t,body) 
-            -> Let (List.map (fun (v,t,e)-> (v,t,aux e)) lst,t,aux body)
-	| RecFunc (te,id,args,body) 
-            ->  RecFunc (te,id,args,aux body)
+    | Match (em, lst) ->
+        begin
+            let rec custom_nest_2_simp (p:DPL.dPL_pat) (e:DPL.dPL_pat DPL.dPL_expr_gen):((DPL.id * int * DPL.id list) * (DPL.id * int * DPL.id list) DPL.dPL_expr_gen) =
+                match p with
+                | PVar _ -> failwith "var pattern detected"
+                | PCons (i,_,lst) ->
+                    let nested_cons = List.filter (fun x ->
+                        match x with
+                        | PCons _ -> true
+                        | _ -> false
+                    ) lst in
+                    let nested_cons_length = List.length nesting_count in
+                    if nested_cons_length > 1 then
+                    (* pass multiple args to the nested
+    construction *)
+                        failwith "TO BE IMPLEMENTED"
+                    else if nested_cons_length = 1 then
+                        let [(fvar, target_e)] = List.map (fun x ->
+                            let i = vnames # fresh_id in
+                            let target_e = Match(Var(i),)
+                        ) nested_cons
+                        (* extract target_e first *)
+                        let p = find_position i in
+                        ((i,p,(List.map (fun v -> match v with
+                        | PVar v -> v
+                        | PCons (x,y,z) ->
+                            let i = vnames # fresh_id in
+                            let target_e = Match(Var(i), [(v, e)]) in
+                        (* let wrap_e = custom_nest_2_simp (PVar i) target_e in *)
+                            (i, target_e)
+                     (* failwith "problem" *)
+                          )
+                                   lst)), aux e)
+                    else
+            in
+            
+            let (first_ty, _) = List.hd lst in
+            match first_ty with
+            | PCons (id, n, _) ->
+                begin
+                    match ty_dict#find_tag id with
+                    | n, ty_list, ty_decl ->
+                        begin
+                            let simple = List.map (fun (p,e)->(custom_nest_2_simp p e)) lst in
+                            let ordered = List.sort (fun ((_,n1,_), _) ((_,n2,_), _) ->
+                                if n1 < n2 then
+                                    -1
+                                else if n1 > n2 then
+                                    1
+                                else 0
+                            ) simple in
+                            let rec insert_missing = fun ordered_lst def_lst i ->
+                                match ordered_lst, def_lst with
+                                | ((idx,_,_), _)::oxs, (idy, _)::dxs when idx = idy -> (List.hd ordered_lst)::(insert_missing oxs dxs (i+1))
+                                | [], (idy, _)::dxs
+                                | _, (idy, _)::dxs ->
+                                    let rec create_param_lst = fun x ->
+                                        begin
+                                            if x = 0
+                                            then
+                                                []
+                                            else
+                                                "_"::(create_param_lst (x-1))
+                                        end
+                                    in
+                                    let param_lst = create_param_lst (List.length ty_decl.ty_def_data) in
+                                    ((idy, (i+1), []), Throw(IntConst(i+1)))::(insert_missing ordered_lst dxs (i+1))
+                                | [], [] -> []
+                            in
+                            let ins = insert_missing ordered ty_decl.ty_def_data 0 in
+                            Match(aux em, ins)
+                        end
+                end
+            | PVar _ -> failwith "TODO?"
+        (* | _ -> raise "Failed to find type" *)
+        end
+            
+    | Constr (i,tag,args) ->
+        let n =  find_position i in
+        Constr (i,n,List.map aux args)
+    | HasType (e,t) 
+        -> HasType (aux e,t)
+    | Appln (e1,t,args) 
+        -> Appln(aux e1,t,List.map aux args)
+    | Func (te,args,body) 
+        -> Func (te,args,aux body)
+    | Let (lst,t,body) 
+        -> Let (List.map (fun (v,t,e)-> (v,t,aux e)) lst,t,aux body)
+    | RecFunc (te,id,args,body) 
+        ->  RecFunc (te,id,args,aux body)
     in aux e
 
 let parse_file (filename:string) : string * dPL_nexpr =
@@ -149,5 +166,5 @@ let parse_file (filename:string) : string * dPL_nexpr =
     (s,e)
 
 let pre_proc (e:dPL_nexpr) : dPL_expr
-	= norm_match e
+    = norm_match e
 
