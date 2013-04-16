@@ -1,0 +1,15 @@
+LOADING dPL program ..
+  type list 'a =   | Nil  | Cons 'a (list 'a);fun x ->  match x with   Cons a _ -> a;   Nil -> throw 1  endend
+ AS ==> 
+	 Type Declarations: [(list,list ['a] =[Nil [],Cons ['a,(list 'a)]])]
+	 Expression: fun  x -> 
+(match Var(x) with 
+(Cons{0} a _) -> Var(a);
+(Nil{0} ) -> throw(Int(1)) end) 
+ end
+PRE-PROCESSING ..
+ ==> pre-proc : fun  x -> 
+(match Var(x) with 
+(Nil{1} ) -> throw(Int(1));
+(Cons{2} a _) -> Var(a) end) 
+ end

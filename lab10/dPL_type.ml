@@ -399,12 +399,12 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
 		let (subs_lst,args_lst) = List.split ans in
 		let (bt,(s,ft)) = create_fn_type subs_lst in
               (* Hint : use unify_option and apply_subs *)
-		let (unify_subs, unify_result) = unify_option nt1 ft in
-		let s3 = s@unify_subs in
-		let new_body_type = apply_subs s3 bt in
-		((s3,new_body_type), Appln (ne1, Some unify_result, args_lst))
-	    end
-	| Let (lst,_,body) ->
+              let (unify_subs, unify_result) = unify_option nt1 ft in
+              let s3 = s@unify_subs in
+              let new_body_type = apply_subs s3 bt in
+              ((s3,new_body_type), Appln (ne1, Some unify_result, args_lst))
+	  end
+      | Let (lst,_,body) ->
             begin
               (* tlst :(DPL.id * (((DPL.id * DPL.dPL_type) list * DPL.dPL_type) * DPL.dPL_expr)) list *)
 		let tlst = List.map (fun (ot,v,e) -> (v,infer env e)) lst in
