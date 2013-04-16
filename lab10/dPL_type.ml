@@ -404,17 +404,6 @@ let type_infer (env:env_type) (e:dPL_expr) : outcome * dPL_expr =
               let new_body_type = apply_subs s3 bt in
               ((s3,new_body_type), Appln (ne1, Some unify_result, args_lst))
 	  end
-      (* begin *)
-      (* let (nt1,ne1) = infer env e1 in *)
-      (* let ans = List.map (infer env) args in *)
-      (* let (types_lst,args_lst) = List.split ans in *)
-      (* let (bt,(s,arg_tp_lst)) = create_fn_type types_lst in *)
-      (* let (s1, _) = unify_option nt1 bt in *)
-      (* let at = List.map (fun (_,t) -> apply_subs s t) types_lst in *)
-      (* ((s1, bt), Appln (ne1, Some arg_tp_lst, args_lst)) *)
-      (* Hint : use unify_option and apply_subs *)
-      (* failwith "TO BE IMPLEMENTED" *)
-      (* end *)
       | Let (lst,_,body) ->
             begin
               (* tlst :(DPL.id * (((DPL.id * DPL.dPL_type) list * DPL.dPL_type) * DPL.dPL_expr)) list *)
