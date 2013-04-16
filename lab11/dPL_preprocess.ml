@@ -83,21 +83,51 @@ let norm_match (e:dPL_nexpr) : dPL_expr =
 	      (* 		  | [] -> failwith "incorrect number of lst members" *)
 	      (* 	      end *)
 	      (* in *)
-	      (* match ty_dict#find_tag_types first_ty with *)
-	      (* | Some (def, def_lst) -> *)
-	      (* let reordered_clauses = reorder def_lst lst []
-		 in *)
-		let simple = List.map (fun (p,e)->(nest_2_simp p,aux e)) lst in
-		let ordered = List.sort (fun ((_,n1,_), _) ((_,n2,_), _) ->
-		    if n1 < n2 then
-			-1
-		    else if n1 > n2 then
-			1
-		    else 0
-		) simple in
-		Match(aux em, ordered)
-	  (* | _ -> raise "Failed to find type" *)
+		
+		match first_ty with
+		| PCons (id, n, _) ->
+		(*     begin *)
+			match ty_dict#find_tag id with
+			| n, ty_list, ty_decl ->
+			    begin
+				let simple = List.map (fun (p,e)->(nest_2_simp p,aux e)) lst in
+				let ordered = List.sort (fun ((_,n1,_), _) ((_,n2,_), _) ->
+				    if n1 < n2 then
+					-1
+				    else if n1 > n2 then
+					1
+				    else 0
+				) simple in
+				let rec insert_missing = fun ordered_lst def_lst i ->
+				    match ordered_lst, def_lst with
+				    | ((idx,_,_), _)::oxs, (idy, _)::dxs when idx = idy -> (List.hd ordered_lst)::(insert_missing oxs dxs (i+1))
+				    | [], (idy, _)::dxs
+				    | _, (idy, _)::dxs ->
+					let rec create_param_lst = fun x ->
+					    begin
+						if x = 0
+						then
+						    []
+						else
+						    "_"::(create_param_lst (x-1))
+					    end
+					in
+					let param_lst = create_param_lst (List.length ty_decl.ty_def_data) in
+					((idy, (i+1), []), Throw(IntConst(i+1)))::(insert_missing ordered_lst dxs (i+1))
+					(* (List.hd ordered_lst)::(insert_missing ordered_lst dxs (i+1)) *)
+				    | [], [] -> []
+				in
+				(* let _ = List.map (fun x -> print_endline (string_of_dPL_type x)) ty_list *)
+				(* and _ = print_endline
+		(string_of_dPL_type_decl ty_decl) in *)
+				let ins = insert_missing ordered ty_decl.ty_def_data 0 in
+				Match(aux em, ins)
+			    end
+		(*     end *)
+		(* | PVar _ -> failwith "..." *)
+	    (* | _ -> raise "Failed to find type" *)
 	    end
+		
 	| Constr (i,tag,args) ->
             let n =  find_position i in
             Constr (i,n,List.map aux args)
