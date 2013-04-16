@@ -59,6 +59,9 @@ let rec custom_nest_2_simp (aux) (p:DPL.dPL_pat) (e:DPL.dPL_pat DPL.dPL_expr_gen
             | PCons _ -> true
             | _ -> false
         ) lst in
+        (* if we have nested instances, this higher order fn allows
+           us to pass in the fresh var we've created. Otherwise, just
+           pass in a dummy string *)
         let fn_init = fun fvar ->
             let map_p = fun v -> match v with
                 | PVar v -> v
@@ -66,16 +69,22 @@ let rec custom_nest_2_simp (aux) (p:DPL.dPL_pat) (e:DPL.dPL_pat DPL.dPL_expr_gen
             in (map_p)
         in
         let p = find_position i in
+        (* map the nested instances to obtain the wrapped 'e' *)
         match List.map (fun x ->
             let i = vnames # fresh_id in
             let target_e = Match(Var(i), [(x,e)]) in
             (i, target_e)
         ) nested_cons with
+        (* we could be dealing with 0 or more instances nested at the
+           same level. Here I deal with the 0 or 1 cases. More than 1
+           is not implemented. That would need recursively resolving
+           the nests in a left-to-right order using this function.
+           From the provided examples it doesn't seem necessary... *)
         | (fvar, target_e)::[] ->
             let (mpv) = fn_init fvar in
             ((i,p, (List.map mpv lst)), aux target_e)
-        | [] ->
-            let (mpv) = fn_init "_" in
+        | [] ->                        (* no nested instances *)
+            let (mpv) = fn_init "_" in (* the '_' will never be used *)
             ((i,p, (List.map mpv lst)), aux e)
         | (_,_)::xs -> failwith "support for multiple elements nested at a level is not implemented"
         | _ -> failwith "something went wrong"
@@ -119,27 +128,21 @@ let norm_match (e:dPL_nexpr) : dPL_expr =
                             let rec insert_missing = fun ordered_lst def_lst i ->
                                 match ordered_lst, def_lst with
                                 | ((idx,_,_), _)::oxs, (idy, _)::dxs when idx = idy -> (List.hd ordered_lst)::(insert_missing oxs dxs (i+1))
-                                | [], (idy, _)::dxs
-                                | _, (idy, _)::dxs ->
+                                | [], (idy, args)::dxs
+                                | _, (idy, args)::dxs ->
                                     let rec create_param_lst = fun x ->
-                                        begin
-                                            if x = 0
-                                            then
-                                                []
-                                            else
-                                                "_"::(create_param_lst (x-1))
-                                        end
+                                            if x = 0 then [] else "_"::(create_param_lst (x-1))
                                     in
-                                    let param_lst = create_param_lst (List.length ty_decl.ty_def_data) in
-                                    ((idy, (i+1), []), Throw(IntConst(i+1)))::(insert_missing ordered_lst dxs (i+1))
+                                    let param_lst = create_param_lst (List.length args) in
+                                    ((idy, (i+1), param_lst), Throw(IntConst(i+1)))::(insert_missing ordered_lst dxs (i+1))
                                 | [], [] -> []
+                                | _, [] -> failwith "too many clauses?"
                             in
                             let ins = insert_missing ordered ty_decl.ty_def_data 0 in
                             Match(aux em, ins)
                         end
                 end
             | PVar _ -> failwith "TODO?"
-        (* | _ -> raise "Failed to find type" *)
         end
             
     | Constr (i,tag,args) ->
