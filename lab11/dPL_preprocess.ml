@@ -50,6 +50,37 @@ let nest_2_simp p =
         | PVar v -> v
         | _ -> failwith "nested pattern detected") lst)
 
+let rec custom_nest_2_simp (aux) (p:DPL.dPL_pat) (e:DPL.dPL_pat DPL.dPL_expr_gen):((DPL.id * int * DPL.id list) * (DPL.id * int * DPL.id list) DPL.dPL_expr_gen) =
+    match p with
+    | PVar _ -> failwith "var pattern detected"
+    | PCons (i,_,lst) ->
+        let nested_cons = List.filter (fun x ->
+            match x with
+            | PCons _ -> true
+            | _ -> false
+        ) lst in
+        let fn_init = fun fvar ->
+            let map_p = fun v -> match v with
+                | PVar v -> v
+                | PCons _ -> fvar
+            in (map_p)
+        in
+        let p = find_position i in
+        match List.map (fun x ->
+            let i = vnames # fresh_id in
+            let target_e = Match(Var(i), [(x,e)]) in
+            (i, target_e)
+        ) nested_cons with
+        | (fvar, target_e)::[] ->
+            let (mpv) = fn_init fvar in
+            ((i,p, (List.map mpv lst)), aux target_e)
+        | [] ->
+            let (mpv) = fn_init "_" in
+            ((i,p, (List.map mpv lst)), aux e)
+        | (_,_)::xs -> failwith "support for multiple elements nested at a level is not implemented"
+        | _ -> failwith "something went wrong"
+
+            
 
 let norm_match (e:dPL_nexpr) : dPL_expr =
     let rec aux e =
@@ -70,40 +101,6 @@ let norm_match (e:dPL_nexpr) : dPL_expr =
             -> Cond (aux e1,aux e2,aux e3)
     | Match (em, lst) ->
         begin
-            let rec custom_nest_2_simp (p:DPL.dPL_pat) (e:DPL.dPL_pat DPL.dPL_expr_gen):((DPL.id * int * DPL.id list) * (DPL.id * int * DPL.id list) DPL.dPL_expr_gen) =
-                match p with
-                | PVar _ -> failwith "var pattern detected"
-                | PCons (i,_,lst) ->
-                    let nested_cons = List.filter (fun x ->
-                        match x with
-                        | PCons _ -> true
-                        | _ -> false
-                    ) lst in
-                    let nested_cons_length = List.length nesting_count in
-                    if nested_cons_length > 1 then
-                    (* pass multiple args to the nested
-    construction *)
-                        failwith "TO BE IMPLEMENTED"
-                    else if nested_cons_length = 1 then
-                        let [(fvar, target_e)] = List.map (fun x ->
-                            let i = vnames # fresh_id in
-                            let target_e = Match(Var(i),)
-                        ) nested_cons
-                        (* extract target_e first *)
-                        let p = find_position i in
-                        ((i,p,(List.map (fun v -> match v with
-                        | PVar v -> v
-                        | PCons (x,y,z) ->
-                            let i = vnames # fresh_id in
-                            let target_e = Match(Var(i), [(v, e)]) in
-                        (* let wrap_e = custom_nest_2_simp (PVar i) target_e in *)
-                            (i, target_e)
-                     (* failwith "problem" *)
-                          )
-                                   lst)), aux e)
-                    else
-            in
-            
             let (first_ty, _) = List.hd lst in
             match first_ty with
             | PCons (id, n, _) ->
@@ -111,7 +108,7 @@ let norm_match (e:dPL_nexpr) : dPL_expr =
                     match ty_dict#find_tag id with
                     | n, ty_list, ty_decl ->
                         begin
-                            let simple = List.map (fun (p,e)->(custom_nest_2_simp p e)) lst in
+                            let simple = List.map (fun (p,e)->(custom_nest_2_simp aux p e)) lst in
                             let ordered = List.sort (fun ((_,n1,_), _) ((_,n2,_), _) ->
                                 if n1 < n2 then
                                     -1
